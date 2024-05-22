@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
 import numpy as np
+import plotly
 from tradingview_ta import TA_Handler, Interval, Exchange
 
 # Helper function to fetch stock data
