@@ -1,5 +1,7 @@
 streamlit
 yfinance
 pandas
-timedelta
+numpy
+scikit-learn
+plotly
 tradingview_ta
