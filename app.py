@@ -72,6 +72,3 @@ def main():
         
     else:
         st.error("Failed to fetch data from NSE API")
-
-if _name_ == "_main_":
-    main()
