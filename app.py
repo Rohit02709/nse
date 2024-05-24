@@ -1,12 +1,10 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import plotly
+import numpy as np
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
-import numpy as np
-
 from tradingview_ta import TA_Handler, Interval, Exchange
 
 # Helper function to fetch stock data
@@ -57,16 +55,27 @@ def get_technical_analysis(ticker):
     analysis = handler.get_analysis()
     return analysis.summary
 
+# Function to suggest option buying strategy
+def suggest_option_strategy(calls, puts, spot_price, max_loss, expected_profit):
+    # Example strategy: Buy slightly OTM Call and Put options with specific risk/reward
+    call_options = calls[calls['strike'] >= spot_price].iloc[0]
+    put_options = puts[puts['strike'] <= spot_price].iloc[-1]
+
+    st.write(f"Suggested Call Option: Strike Price {call_options['strike']}, Last Price {call_options['lastPrice']}")
+    st.write(f"Suggested Put Option: Strike Price {put_options['strike']}, Last Price {put_options['lastPrice']}")
+    st.write(f"Max Loss: {max_loss} INR, Expected Profit: {expected_profit} INR")
+
 # Streamlit UI
-st.title('NSE Equity and Derivatives Analysis')
+st.title('NSE Index Options Analysis')
 
 # Sidebar for user inputs
 st.sidebar.header('User Inputs')
-ticker = st.sidebar.text_input('Ticker Symbol', 'RELIANCE.NS')
+ticker = st.sidebar.selectbox('Index Ticker', ['^NSEI'])  # Nifty 50 index
 start_date = st.sidebar.date_input('Start Date', datetime.today() - timedelta(days=365))
 end_date = st.sidebar.date_input('End Date', datetime.today())
-timeframe = st.sidebar.selectbox('Timeframe', ['1d', '5d', '1mo', '3mo', '6mo', '1y'])
 prediction_days = st.sidebar.slider('Days for Prediction', 1, 30, 7)
+max_loss = st.sidebar.number_input('Max Loss (INR)', value=1000)
+expected_profit = st.sidebar.number_input('Expected Profit (INR)', value=2000)
 
 # Fetch and display stock data
 df = get_stock_data(ticker, start_date, end_date)
@@ -99,7 +108,8 @@ st.write(pred)
 # Technical Analysis
 st.header('Technical Analysis Summary')
 analysis_summary = get_technical_analysis(ticker.replace('.NS', ''))
-st.write(analysis_summary)
+analysis_df = pd.DataFrame(list(analysis_summary.items()), columns=['Indicator', 'Value'])
+st.write(analysis_df)
 
 # Historical analysis
 st.header('Historical Analysis')
@@ -111,3 +121,11 @@ forecast = predict_prices(df, prediction_days)
 forecast_dates = pd.date_range(start=end_date, periods=prediction_days).tolist()
 forecast_df = pd.DataFrame(data=forecast, index=forecast_dates, columns=['Predicted Close'])
 st.line_chart(forecast_df)
+
+# Option Strategy Suggestion
+st.header('Option Buying Strategy')
+if expiry_dates:
+    spot_price = df['Close'].iloc[-1]
+    suggest_option_strategy(calls, puts, spot_price, max_loss, expected_profit)
+
+st.write("Note: The option strategy is a placeholder. Detailed strategy requires more complex logic and historical options data.")
