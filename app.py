@@ -86,12 +86,16 @@ def main():
             expiry_dates = sorted(calls_df['expiryDate'].unique())
             expiry_date = st.selectbox("Select Expiry Date", expiry_dates)
 
-            # Select min and max strike prices above ATM
-            min_strike_price = atm_strike + 1  # Set min just above ATM
-            max_strike_price = st.number_input("Select Max Strike Price", min_value=min(calls_df['strikePrice']), max_value=max(calls_df['strikePrice']), value=max(calls_df['strikePrice']))
+            # Set min and max strike prices based on ATM
+            min_strike_price = atm_strike - 10  # Set min 10 below ATM
+            max_strike_price = atm_strike + 10  # Set max 10 above ATM
 
-            filtered_calls = calls_df[(calls_df['expiryDate'] == expiry_date) & (calls_df['strikePrice'] >= min_strike_price) & (calls_df['strikePrice'] <= max_strike_price)]
-            filtered_puts = puts_df[(puts_df['expiryDate'] == expiry_date) & (puts_df['strikePrice'] >= min_strike_price) & (puts_df['strikePrice'] <= max_strike_price)]
+            # User input for minimum and maximum strike prices
+            min_strike_input = st.number_input("Select Min Strike Price", min_value=min(calls_df['strikePrice']), max_value=max(calls_df['strikePrice']), value=min_strike_price)
+            max_strike_input = st.number_input("Select Max Strike Price", min_value=min(calls_df['strikePrice']), max_value=max(calls_df['strikePrice']), value=max_strike_price)
+
+            filtered_calls = calls_df[(calls_df['expiryDate'] == expiry_date) & (calls_df['strikePrice'] >= min_strike_input) & (calls_df['strikePrice'] <= max_strike_input)]
+            filtered_puts = puts_df[(puts_df['expiryDate'] == expiry_date) & (puts_df['strikePrice'] >= min_strike_input) & (puts_df['strikePrice'] <= max_strike_input)]
             
             st.subheader("Calls")
             st.dataframe(filtered_calls)
@@ -100,10 +104,10 @@ def main():
             st.dataframe(filtered_puts)
             
             # Visualizations
-            fig_calls = px.line(filtered_calls, x='strikePrice', y='openInterest', title=f'Open Interest for Calls above ATM Strike Price {min_strike_price}')
+            fig_calls = px.line(filtered_calls, x='strikePrice', y='openInterest', title=f'Open Interest for Calls between {min_strike_input} and {max_strike_input}')
             fig_calls.update_traces(name='Call')
             
-            fig_puts = px.line(filtered_puts, x='strikePrice', y='openInterest', title=f'Open Interest for Puts above ATM Strike Price {min_strike_price}')
+            fig_puts = px.line(filtered_puts, x='strikePrice', y='openInterest', title=f'Open Interest for Puts between {min_strike_input} and {max_strike_input}')
             fig_puts.update_traces(name='Put')
             
             combined_fig = px.line(pd.concat([filtered_calls, filtered_puts]), x='strikePrice', y='openInterest', color='type', title='Combined Open Interest')
