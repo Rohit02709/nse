@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 
 # Function to fetch data from NSE API
 def fetch_option_chain(symbol):
@@ -37,28 +38,6 @@ def process_data(data):
 
     return calls_df, puts_df
 
-# Function to calculate market move based on various parameters
-def calculate_market_move(calls_df, puts_df):
-    # Example: Market move based on change in Open Interest (OI)
-    call_oi_change = calls_df['changeinOpenInterest'].sum()
-    put_oi_change = puts_df['changeinOpenInterest'].sum()
-    total_oi_change = call_oi_change + put_oi_change
-
-    if total_oi_change > 0:
-        return "Bullish", total_oi_change
-    elif total_oi_change < 0:
-        return "Bearish", total_oi_change
-    else:
-        return "Neutral", total_oi_change
-
-# Function to suggest strike prices for trading
-def suggest_strike_prices(calls_df, puts_df):
-    # Example: Suggesting strike prices based on high Open Interest (OI)
-    call_max_oi_strike = calls_df.loc[calls_df['openInterest'].idxmax()]
-    put_max_oi_strike = puts_df.loc[puts_df['openInterest'].idxmax()]
-
-    return call_max_oi_strike, put_max_oi_strike
-
 # Streamlit application
 def main():
     st.sidebar.title("Option Chain Dashboard")
@@ -90,32 +69,25 @@ def main():
             
             st.subheader("Puts")
             st.dataframe(filtered_puts)
-            
-            fig_calls = px.line(filtered_calls, x='strikePrice', y='openInterest', title=f'Open Interest for Calls at Strike Price Range {min_strike_price}-{max_strike_price}')
-            fig_calls.update_traces(name='Call')
-            
-            fig_puts = px.line(filtered_puts, x='strikePrice', y='openInterest', title=f'Open Interest for Puts at Strike Price Range {min_strike_price}-{max_strike_price}')
-            fig_puts.update_traces(name='Put')
-            
-            combined_fig = px.line(pd.concat([filtered_calls, filtered_puts]), x='strikePrice', y='openInterest', color='type', title='Combined Open Interest')
-            
-            oi_bar_chart = px.bar(pd.concat([filtered_calls, filtered_puts]), x='strikePrice', y='openInterest', color='type', barmode='group', title='Open Interest Bar Chart')
-            
-            st.plotly_chart(fig_calls)
-            st.plotly_chart(fig_puts)
-            st.plotly_chart(combined_fig)
-            st.plotly_chart(oi_bar_chart)
-            
-            market_move, total_oi_change = calculate_market_move(filtered_calls, filtered_puts)
-            st.write(f"Market Move: {market_move}, Total Change in OI: {total_oi_change}")
-            
-            call_max_oi_strike, put_max_oi_strike = suggest_strike_prices(filtered_calls, filtered_puts)
-            st.subheader("Suggested Strike Prices for Trading")
-            st.write("Call Option:")
-            st.write(call_max_oi_strike)
-            st.write("Put Option:")
-            st.write(put_max_oi_strike)
-            
+
+            # Assuming we can use the last price, high, low, and open from filtered_calls for candlestick
+            if not filtered_calls.empty:
+                candlestick_data = pd.DataFrame({
+                    'Date': pd.to_datetime(data['records']['timestamp']),
+                    'Open': filtered_calls['lastPrice'],  # Replace with actual open price if available
+                    'High': filtered_calls['highPrice'],  # Replace with actual high price if available
+                    'Low': filtered_calls['lowPrice'],     # Replace with actual low price if available
+                    'Close': filtered_calls['lastPrice']   # Replace with actual close price if available
+                })
+                
+                candlestick_fig = go.Figure(data=[go.Candlestick(x=candlestick_data['Date'],
+                                                                  open=candlestick_data['Open'],
+                                                                  high=candlestick_data['High'],
+                                                                  low=candlestick_data['Low'],
+                                                                  close=candlestick_data['Close'])])
+                candlestick_fig.update_layout(title=f'Live Candlestick Chart for {symbol}', xaxis_title='Date', yaxis_title='Price')
+                st.plotly_chart(candlestick_fig)
+
             time.sleep(120)  # Wait for 2 minutes before refreshing data
         else:
             st.error("Failed to fetch data from NSE API")
