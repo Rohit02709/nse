@@ -87,8 +87,8 @@ def main():
             expiry_date = st.selectbox("Select Expiry Date", expiry_dates)
 
             # Set min and max strike prices based on ATM
-            min_strike_price = atm_strike - 10  # Set min 10 below ATM
-            max_strike_price = atm_strike + 10  # Set max 10 above ATM
+            min_strike_price = atm_strike - 10  # Set min 10 strikes below ATM
+            max_strike_price = atm_strike + 10  # Set max 10 strikes above ATM
 
             # User input for minimum and maximum strike prices
             min_strike_input = st.number_input("Select Min Strike Price", min_value=min(calls_df['strikePrice']), max_value=max(calls_df['strikePrice']), value=min_strike_price)
