@@ -120,4 +120,5 @@ def main():
         else:
             st.error("Failed to fetch data from NSE API")
 
-if __name__ == "__main__"
+if __name__ == "__main__":
+    main()
