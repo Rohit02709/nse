@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from datetime import datetime
 import pytz
 
 # Function to fetch data from NSE API
@@ -40,7 +41,6 @@ def process_data(data):
 
 # Function to calculate market move based on various parameters
 def calculate_market_move(calls_df, puts_df):
-    # Example: Market move based on change in Open Interest (OI)
     call_oi_change = calls_df['changeinOpenInterest'].sum()
     put_oi_change = puts_df['changeinOpenInterest'].sum()
     total_oi_change = call_oi_change + put_oi_change
@@ -54,7 +54,6 @@ def calculate_market_move(calls_df, puts_df):
 
 # Function to suggest strike prices for trading
 def suggest_strike_prices(calls_df, puts_df):
-    # Example: Suggesting strike prices based on high Open Interest (OI)
     call_max_oi_strike = calls_df.loc[calls_df['openInterest'].idxmax()]
     put_max_oi_strike = puts_df.loc[puts_df['openInterest'].idxmax()]
 
@@ -64,7 +63,7 @@ def suggest_strike_prices(calls_df, puts_df):
 def main():
     st.sidebar.title("Option Chain Dashboard")
     
-    symbol = st.sidebar.selectbox("Select Symbol", ["NIFTY", "BANKNIFTY","FINNIFTY","MIDCPNIFTY"])
+    symbol = st.sidebar.selectbox("Select Symbol", ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"])
     
     while True:
         data = fetch_option_chain(symbol)
@@ -74,10 +73,8 @@ def main():
             
             underlying_value = data['records']['underlyingValue']
             
-            st.title(f"NIFTY: {underlying_value}")
-          # st.write(f"Data last refreshed at: {time.strftime('%H:%M:%S')} IST")
+            st.title(f"{symbol}: {underlying_value}")
             st.write(f"Data last refreshed at: {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')} IST")
-
             
             expiry_dates = sorted(calls_df['expiryDate'].unique())
             expiry_date = st.selectbox("Select Expiry Date", expiry_dates)
@@ -119,7 +116,7 @@ def main():
             st.write("Put Option:")
             st.write(put_max_oi_strike)
             
-            time.sleep(60)  # Wait for 2 minutes before refreshing data
+            time.sleep(60)  # Wait for 1 minute before refreshing data
         else:
             st.error("Failed to fetch data from NSE API")
 
