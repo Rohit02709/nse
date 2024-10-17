@@ -57,20 +57,38 @@ def main():
         
         if data:
             calls_df, puts_df = process_data(data)
-            
-            # Add metrics for analysis
-            calls_df['premium_change'] = calls_df['lastPrice'] - calls_df['previousPrice']  # Calculate premium change
-            calls_df['volume_change'] = calls_df['totalTradedVolume'] - calls_df['totalTradedVolume'].shift(1)  # Volume change
+
+            # Inspect available columns
+            st.write("Available columns in calls_df:")
+            st.write(calls_df.columns)
+
+            # Show sample data
+            st.write("Sample data in calls_df:")
+            st.write(calls_df.head())
+
+            # Calculate premium change if columns are available
+            if 'lastPrice' in calls_df.columns and 'previousPrice' in calls_df.columns:
+                calls_df['premium_change'] = calls_df['lastPrice'] - calls_df['previousPrice']  # Calculate premium change
+            else:
+                st.error("Columns 'lastPrice' or 'previousPrice' not found in calls_df")
+                calls_df['premium_change'] = None  # Set to None or handle appropriately
+
+            # Calculate volume change if column is available
+            if 'totalTradedVolume' in calls_df.columns:
+                calls_df['volume_change'] = calls_df['totalTradedVolume'] - calls_df['totalTradedVolume'].shift(1)  # Volume change
+            else:
+                st.error("Column 'totalTradedVolume' not found in calls_df")
+                calls_df['volume_change'] = None  # Set to None or handle appropriately
             
             # Filter for bullish indicators
             bullish_calls = calls_df[(calls_df['premium_change'] > 0) & (calls_df['volume_change'] > 0)]
-            
+
             st.title(f"{symbol}: {data['records']['underlyingValue']}")
             st.write(f"Data last refreshed at: {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')} IST")
             
             expiry_dates = sorted(calls_df['expiryDate'].unique())
             expiry_date = st.selectbox("Select Expiry Date", expiry_dates)
-            
+
             # Display bullish calls
             if not bullish_calls.empty:
                 st.subheader("Bullish Call Options")
