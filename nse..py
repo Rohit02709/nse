@@ -13,7 +13,7 @@ def fetch_option_chain(symbol):
         "Accept-Encoding": "gzip, deflate",
         "Accept-Language": "en-US,en;q=0.9",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.106 Safari/537.36",
-        "Cookie": "nseappid=your_cookie_here"  # Update this with a valid cookie
+        "Cookie": "nseappid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcGkubnNlIiwiYXVkIjoiYXBpLm5zZSIsImlhdCI6MTcyOTE0NzY2MCwiZXhwIjoxNzI5MTU0ODYwfQ.6SfINgBuzV8XVHUx4KlHIxuTpYgkn_il3viq-EnxrQ4; Path"
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
