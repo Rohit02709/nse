@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import pytz
 
 # Function to fetch data from NSE API
 def fetch_option_chain(symbol):
@@ -74,7 +75,9 @@ def main():
             underlying_value = data['records']['underlyingValue']
             
             st.title(f"NIFTY: {underlying_value}")
-            st.write(f"Data last refreshed at: {time.strftime('%H:%M:%S')} IST")
+          # st.write(f"Data last refreshed at: {time.strftime('%H:%M:%S')} IST")
+            st.write(f"Data last refreshed at: {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')} IST")
+
             
             expiry_dates = sorted(calls_df['expiryDate'].unique())
             expiry_date = st.selectbox("Select Expiry Date", expiry_dates)
