@@ -63,7 +63,7 @@ def suggest_strike_prices(calls_df, puts_df):
 def main():
     st.sidebar.title("Option Chain Dashboard")
     
-    symbol = st.sidebar.selectbox("Select Symbol", ["NIFTY", "BANKNIFTY"])
+    symbol = st.sidebar.selectbox("Select Symbol", ["NIFTY", "BANKNIFTY","FINNIFTY","MIDCPNIFTY"])
     
     while True:
         data = fetch_option_chain(symbol)
@@ -116,7 +116,7 @@ def main():
             st.write("Put Option:")
             st.write(put_max_oi_strike)
             
-            time.sleep(120)  # Wait for 2 minutes before refreshing data
+            time.sleep(60)  # Wait for 2 minutes before refreshing data
         else:
             st.error("Failed to fetch data from NSE API")
 
