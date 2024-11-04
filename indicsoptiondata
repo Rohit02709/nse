@@ -1,0 +1,83 @@
+import streamlit as st
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+
+# Enable wide mode
+st.set_page_config(layout="wide")
+
+# Define the URL
+url = "https://www.moneycontrol.com/stocks/fno/marketstats/options/active_value/homebody.php?opttopic=active_value&optinst=indopt&sel_mth=all&sort_order=0"
+
+# Function to fetch table data
+def fetch_table_data(table_index):
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+        tables = soup.find_all('table')
+
+        if len(tables) > table_index:
+            data = []
+            for row in tables[table_index].find_all('tr'):
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+
+                if len(cols) > 0:
+                    data.append(cols)
+
+            headers = [header.text.strip() for header in tables[table_index].find_all('th')]
+            return pd.DataFrame(data, columns=headers)
+        else:
+            st.error("Table index out of range.")
+            return None
+    else:
+        st.error(f"Failed to retrieve data: {response.status_code}")
+        return None
+
+# Streamlit app interface
+st.title("Option Data Viewer")
+st.write("This app fetches data from INDICS DB every minute.")
+
+# Fetch Table 2 data (index 1 since it's zero-indexed)
+table_data = fetch_table_data(1)
+
+if table_data is not None:
+    # Create filter options
+    st.subheader("Filter Options")
+
+    if 'Symbol' in table_data.columns:
+        unique_symbols = table_data['Symbol'].unique()
+        selected_symbol = st.selectbox("Select Symbol", options=["All"] + list(unique_symbols), key='symbol_filter')
+    else:
+        selected_symbol = "All"
+
+    if 'Expiry Date' in table_data.columns:
+        unique_expiries = table_data['Expiry Date'].unique()
+        selected_expiry = st.selectbox("Select Expiry Date", options=["All"] + list(unique_expiries), key='expiry_filter')
+    else:
+        selected_expiry = "All"
+
+    # Apply filters
+    filtered_data = table_data.copy()
+    if selected_symbol != "All":
+        filtered_data = filtered_data[filtered_data['Symbol'] == selected_symbol]
+    if selected_expiry != "All":
+        filtered_data = filtered_data[filtered_data['Expiry Date'] == selected_expiry]
+
+    # Display the filtered data
+    st.write("### Active Option Data Table")
+    st.dataframe(filtered_data)
+
+    st.info("Data will refresh every minute.")
+else:
+    st.warning("No data available at this time.")
+
+# Auto-refresh functionality
+if "last_updated" not in st.session_state:
+    st.session_state.last_updated = time.time()
+
+# Check if refresh is needed
+if time.time() - st.session_state.last_updated > 60:
+    st.session_state.last_updated = time.time()
+    st.experimental_rerun()
